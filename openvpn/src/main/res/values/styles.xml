@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="blinkt" parent="blinkt.baseTheme" />
+
+    <style name="blinkt.baseTheme" parent="@style/Theme.AppCompat.Light" />
+
+    <style name="blinkt.dialog" parent="@android:style/Theme.DeviceDefault.Light.Dialog" />
+
+</resources>

@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2012-2016 Arne Schwabe
+ * Distributed under the GNU GPL v2 with additional terms. For full terms see the file doc/LICENSE.txt
+ */
+
+package de.blinkt.openvpn.core;
+
+import java.security.InvalidKeyException;
+
+public class NativeUtils {
+    public final static int[] openSSLlengths = {
+            16, 64, 256, 1024, 8 * 1024, 16 * 1024
+    };
+
+    static {
+        System.loadLibrary("opvpnutil");
+    }
+
+    public static native byte[] rsasign(byte[] input, int pkey) throws InvalidKeyException;
+
+    public static native String[] getIfconfig() throws IllegalArgumentException;
+
+    static native void jniclose(int fdint);
+
+    public static String getNativeAPI() {
+        return getJNIAPI();
+    }
+
+    private static native String getJNIAPI();
+
+    public static native String getOpenVPN2GitVersion();
+
+    public static native String getOpenVPN3GitVersion();
+
+    public static native double[] getOpenSSLSpeed(String algorithm, int testnum);
+
+}
