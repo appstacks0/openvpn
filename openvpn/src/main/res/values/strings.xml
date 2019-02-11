@@ -55,8 +55,10 @@
     <string name="ovpn_no_error_found">No error found</string>
     <string name="ovpn_no_keystore_cert_selected">You must select a User certificate</string>
     <string name="ovpn_no_orbotfound">Orbot application cannot be found. Please install Orbot or use manual Socks v5 integration.</string>
+    <string name="ovpn_no_vpn_support_image">Your image does not support the VPNService API, sorry :(</string>
     <string name="ovpn_notifcation_title" translatable="false">%s - %s</string>
     <string name="ovpn_notifcation_title_notconnect">Not connected</string>
+    <string name="ovpn_nought_alwayson_warning">If you did not get a VPN confirmation dialog, you have \"Always on VPN\" enabled for another app. In that case only that app is allowed to connect to a VPN. Check under Settings-> Networks more .. -> VPNS</string>
     <string name="ovpn_official_build">official build</string>
     <string name="ovpn_opentun_no_ipaddr">Refusing to open tun device without IP information</string>
     <string name="ovpn_openvpn3_nostatickeys">The OpenVPN 3 C++ implementation does not support static keys. Please change to OpenVPN 2.x under general settings.</string>
@@ -106,6 +108,8 @@
     <string name="ovpn_state_resolve">Resolving host names</string>
     <string name="ovpn_state_screenoff">VPN paused - screen off</string>
     <string name="ovpn_state_tcp_connect">Connecting (TCP)</string>
+    <string name="ovpn_state_user_vpn_permission">Waiting for user permission to use VPN API</string>
+    <string name="ovpn_state_user_vpn_permission_cancelled">VPN API permission dialog cancelled</string>
     <string name="ovpn_state_userpause">VPN pause requested by user</string>
     <string name="ovpn_state_wait">Waiting for server reply</string>
     <string name="ovpn_state_waitconnectretry">Waiting %s seconds between connection attempt</string>
