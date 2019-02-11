@@ -108,7 +108,7 @@
     <string name="ovpn_state_tcp_connect">Connecting (TCP)</string>
     <string name="ovpn_state_userpause">VPN pause requested by user</string>
     <string name="ovpn_state_wait">Waiting for server reply</string>
-    <string name="ovpn_state_waitconnectretry">Waiting %ss seconds between connection attempt</string>
+    <string name="ovpn_state_waitconnectretry">Waiting %s seconds between connection attempt</string>
     <string name="ovpn_state_waitorbot">Waiting for Orbot to start</string>
 
     <string name="ovpn_statusline_bytecount" translatable="false">↓%2$s %1$s - ↑%4$s %3$s</string>
