@@ -59,7 +59,7 @@ public class PemReader
 
         while ((line = readLine()) != null)
         {
-            if (line.indexOf(":") >= 0)
+            if (line.contains(":"))
             {
                 int index = line.indexOf(':');
                 String hdr = line.substring(0, index);
@@ -70,7 +70,7 @@ public class PemReader
                 continue;
             }
 
-            if (line.indexOf(endMarker) != -1)
+            if (line.contains(endMarker))
             {
                 break;
             }

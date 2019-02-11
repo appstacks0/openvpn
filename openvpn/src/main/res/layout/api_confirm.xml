@@ -19,8 +19,8 @@
                 android:id="@+id/icon"
                 android:layout_width="@android:dimen/app_icon_size"
                 android:layout_height="@android:dimen/app_icon_size"
-                android:contentDescription="@string/permission_icon_app"
-                android:paddingRight="5.0dip" />
+                android:contentDescription="@string/ovpn_permission_icon_app"
+                android:paddingEnd="5.0dip" />
 
             <TextView
                 android:id="@+id/prompt"
@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="5.0dip"
             android:paddingBottom="5.0dip"
-            android:text="@string/remote_warning"
+            android:text="@string/ovpn_remote_warning"
             android:textSize="18.0sp" />
 
         <CheckBox
@@ -43,7 +43,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:checked="false"
-            android:text="@string/remote_trust"
+            android:text="@string/ovpn_remote_trust"
             android:textSize="20.0sp" />
     </LinearLayout>
 </ScrollView>

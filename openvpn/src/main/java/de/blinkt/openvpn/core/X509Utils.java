@@ -93,7 +93,7 @@ public class X509Utils {
                 VpnStatus.logError("Could not read certificate" + e.getLocalizedMessage());
             }
         }
-        return c.getString(R.string.cannotparsecert);
+        return c.getString(R.string.ovpn_cannotparsecert);
     }
 
     public static String getCertificateValidityString(X509Certificate cert, Resources res) {
@@ -193,19 +193,19 @@ public class X509Utils {
     }
 
     private static String ia5decode(String ia5string) {
-        String d = "";
+        StringBuilder d = new StringBuilder();
         for (int i = 1; i < ia5string.length(); i = i + 2) {
             String hexstr = ia5string.substring(i - 1, i + 1);
             char c = (char) Integer.parseInt(hexstr, 16);
             if (isPrintableChar(c)) {
-                d += c;
+                d.append(c);
             } else if (i == 1 && (c == 0x12 || c == 0x1b)) {
-                ;   // ignore
+                // ignore
             } else {
-                d += "\\x" + hexstr;
+                d.append("\\x").append(hexstr);
             }
         }
-        return d;
+        return d.toString();
     }
 
 

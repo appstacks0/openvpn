@@ -87,7 +87,7 @@ public class DeviceStateReceiver extends BroadcastReceiver implements ByteCountL
 
         if (windowtraffic < TRAFFIC_LIMIT) {
             screen = connectState.DISCONNECTED;
-            VpnStatus.logInfo(R.string.screenoff_pause,
+            VpnStatus.logInfo(R.string.ovpn_screenoff_pause,
                     "64 kB", TRAFFIC_WINDOW);
 
             mManagement.pause(getPauseReason());
@@ -123,7 +123,7 @@ public class DeviceStateReceiver extends BroadcastReceiver implements ByteCountL
 
             if (screenOffPause) {
                 if (ProfileManager.getLastConnectedVpn() != null && !ProfileManager.getLastConnectedVpn().mPersistTun)
-                    VpnStatus.logError(R.string.screen_nopersistenttun);
+                    VpnStatus.logError(R.string.ovpn_screen_nopersistenttun);
 
                 screen = connectState.PENDINGDISCONNECT;
                 fillTrafficData();
@@ -189,13 +189,9 @@ public class DeviceStateReceiver extends BroadcastReceiver implements ByteCountL
             network = connectState.SHOULDBECONNECTED;
 
             boolean sameNetwork;
-            if (lastConnectedNetwork == null
-                    || lastConnectedNetwork.getType() != networkInfo.getType()
-                    || !equalsObj(lastConnectedNetwork.getExtraInfo(), networkInfo.getExtraInfo())
-            )
-                sameNetwork = false;
-            else
-                sameNetwork = true;
+            sameNetwork = lastConnectedNetwork != null
+                    && lastConnectedNetwork.getType() == networkInfo.getType()
+                    && equalsObj(lastConnectedNetwork.getExtraInfo(), networkInfo.getExtraInfo());
 
             /* Same network, connection still 'established' */
             if (pendingDisconnect && sameNetwork) {
@@ -232,7 +228,7 @@ public class DeviceStateReceiver extends BroadcastReceiver implements ByteCountL
 
 
         if (!netstatestring.equals(lastStateMsg))
-            VpnStatus.logInfo(R.string.netstatus, netstatestring);
+            VpnStatus.logInfo(R.string.ovpn_netstatus, netstatestring);
         VpnStatus.logDebug(String.format("Debug state info: %s, pause: %s, shouldbeconnected: %s, network: %s ",
                 netstatestring, getPauseReason(), shouldBeConnected(), network));
         lastStateMsg = netstatestring;

@@ -17,6 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -79,7 +80,7 @@ public class LogItem implements Parcelable {
                 throw new IndexOutOfBoundsException("String length " + len + " is bigger than remaining bytes " + bb.remaining());
             byte[] utf8bytes = new byte[len];
             bb.get(utf8bytes);
-            mMessage = new String(utf8bytes, "UTF-8");
+            mMessage = new String(utf8bytes, StandardCharsets.UTF_8);
         }
         int numArgs = bb.getInt();
         if (numArgs > 30) {
@@ -245,7 +246,7 @@ public class LogItem implements Parcelable {
     }
 
     private void marschalString(String str, ByteBuffer bb) throws UnsupportedEncodingException {
-        byte[] utf8bytes = str.getBytes("UTF-8");
+        byte[] utf8bytes = str.getBytes(StandardCharsets.UTF_8);
         bb.putInt(utf8bytes.length);
         bb.put(utf8bytes);
     }
@@ -254,7 +255,7 @@ public class LogItem implements Parcelable {
         int len = bb.getInt();
         byte[] utf8bytes = new byte[len];
         bb.get(utf8bytes);
-        return new String(utf8bytes, "UTF-8");
+        return new String(utf8bytes, StandardCharsets.UTF_8);
     }
 
     public String getString(Context c) {
@@ -263,7 +264,7 @@ public class LogItem implements Parcelable {
                 return mMessage;
             } else {
                 if (c != null) {
-                    if (mRessourceId == R.string.mobile_info)
+                    if (mRessourceId == R.string.ovpn_mobile_info)
                         return getMobileInfoString(c);
                     if (mArgs == null)
                         return c.getString(mRessourceId);
@@ -319,15 +320,15 @@ public class LogItem implements Parcelable {
             byte[] digest = md.digest();
 
             if (Arrays.equals(digest, VpnStatus.officalkey))
-                apksign = c.getString(R.string.official_build);
+                apksign = c.getString(R.string.ovpn_official_build);
             else if (Arrays.equals(digest, VpnStatus.officaldebugkey))
-                apksign = c.getString(R.string.debug_build);
+                apksign = c.getString(R.string.ovpn_debug_build);
             else if (Arrays.equals(digest, VpnStatus.amazonkey))
                 apksign = "amazon version";
             else if (Arrays.equals(digest, VpnStatus.fdroidkey))
                 apksign = "F-Droid built and signed version";
             else
-                apksign = c.getString(R.string.built_by, cert.getSubjectX500Principal().getName());
+                apksign = c.getString(R.string.ovpn_built_by, cert.getSubjectX500Principal().getName());
 
             PackageInfo packageinfo = c.getPackageManager().getPackageInfo(c.getPackageName(), 0);
             version = packageinfo.versionName;
@@ -340,7 +341,7 @@ public class LogItem implements Parcelable {
         argsext[argsext.length - 1] = apksign;
         argsext[argsext.length - 2] = version;
 
-        return c.getString(R.string.mobile_info, argsext);
+        return c.getString(R.string.ovpn_mobile_info, argsext);
 
     }
 
@@ -362,9 +363,6 @@ public class LogItem implements Parcelable {
         if (mLevel == null)
             return false;
 
-        if (mMessage == null && mRessourceId == 0)
-            return false;
-
-        return true;
+        return mMessage != null || mRessourceId != 0;
     }
 }

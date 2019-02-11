@@ -94,7 +94,7 @@ public class OpenVPNThread implements Runnable {
             }
 
             if (!mNoProcessExitStatus)
-                VpnStatus.updateStateString("NOPROCESS", "No process running.", R.string.state_noprocess, ConnectionStatus.LEVEL_NOTCONNECTED);
+                VpnStatus.updateStateString("NOPROCESS", "No process running.", R.string.ovpn_state_noprocess, ConnectionStatus.LEVEL_NOTCONNECTED);
 
             if (mDumpPath != null) {
                 try {
@@ -105,7 +105,7 @@ public class OpenVPNThread implements Runnable {
                         logout.write(time + " " + li.getString(mService) + "\n");
                     }
                     logout.close();
-                    VpnStatus.logError(R.string.minidump_generated);
+                    VpnStatus.logError(R.string.ovpn_minidump_generated);
                 } catch (IOException e) {
                     VpnStatus.logError("Writing minidump log: " + e.getLocalizedMessage());
                 }
@@ -118,7 +118,7 @@ public class OpenVPNThread implements Runnable {
     }
 
     private void startOpenVPNThreadArgs(String[] argv) {
-        LinkedList<String> argvlist = new LinkedList<String>();
+        LinkedList<String> argvlist = new LinkedList<>();
 
         Collections.addAll(argvlist, argv);
 

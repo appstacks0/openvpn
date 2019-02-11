@@ -37,7 +37,7 @@ public class VpnStatus {
     private static Vector<ByteCountListener> byteCountListener;
     private static String mLaststatemsg = "";
     private static String mLaststate = "NOPROCESS";
-    private static int mLastStateresid = R.string.state_noprocess;
+    private static int mLastStateresid = R.string.ovpn_state_noprocess;
     private static HandlerThread mHandlerThread;
     private static String mLastConnectedVPNUUID;
     private static ConnectionStatus mLastLevel = ConnectionStatus.LEVEL_NOTCONNECTED;
@@ -63,9 +63,9 @@ public class VpnStatus {
         e.printStackTrace(new PrintWriter(sw));
         LogItem li;
         if (context != null) {
-            li = new LogItem(ll, R.string.unhandled_exception_context, e.getMessage(), sw.toString(), context);
+            li = new LogItem(ll, R.string.ovpn_unhandled_exception_context, e.getMessage(), sw.toString(), context);
         } else {
-            li = new LogItem(ll, R.string.unhandled_exception, e.getMessage(), sw.toString());
+            li = new LogItem(ll, R.string.ovpn_unhandled_exception, e.getMessage(), sw.toString());
         }
         newLogItem(li);
     }
@@ -117,12 +117,12 @@ public class VpnStatus {
         if (status.equals("NOPROCESS"))
             return message;
 
-        if (mLastStateresid == R.string.state_waitconnectretry) {
-            return c.getString(R.string.state_waitconnectretry, mLaststatemsg);
+        if (mLastStateresid == R.string.ovpn_state_waitconnectretry) {
+            return c.getString(R.string.ovpn_state_waitconnectretry, mLaststatemsg);
         }
 
         String prefix = c.getString(mLastStateresid);
-        if (mLastStateresid == R.string.unknown_state)
+        if (mLastStateresid == R.string.ovpn_unknown_state)
             message = status + message;
         if (message.length() > 0)
             prefix += ": ";
@@ -181,7 +181,7 @@ public class VpnStatus {
             nativeAPI = "error";
         }
 
-        logInfo(R.string.mobile_info, Build.MODEL, Build.BOARD, Build.BRAND, Build.VERSION.SDK_INT,
+        logInfo(R.string.ovpn_mobile_info, Build.MODEL, Build.BOARD, Build.BRAND, Build.VERSION.SDK_INT,
                 nativeAPI, Build.VERSION.RELEASE, Build.ID, Build.FINGERPRINT, "", "");
     }
 
@@ -214,33 +214,33 @@ public class VpnStatus {
     private static int getLocalizedState(String state) {
         switch (state) {
             case "CONNECTING":
-                return R.string.state_connecting;
+                return R.string.ovpn_state_connecting;
             case "WAIT":
-                return R.string.state_wait;
+                return R.string.ovpn_state_wait;
             case "AUTH":
-                return R.string.state_auth;
+                return R.string.ovpn_state_auth;
             case "GET_CONFIG":
-                return R.string.state_get_config;
+                return R.string.ovpn_state_get_config;
             case "ASSIGN_IP":
-                return R.string.state_assign_ip;
+                return R.string.ovpn_state_assign_ip;
             case "ADD_ROUTES":
-                return R.string.state_add_routes;
+                return R.string.ovpn_state_add_routes;
             case "CONNECTED":
-                return R.string.state_connected;
+                return R.string.ovpn_state_connected;
             case "DISCONNECTED":
-                return R.string.state_disconnected;
+                return R.string.ovpn_state_disconnected;
             case "RECONNECTING":
-                return R.string.state_reconnecting;
+                return R.string.ovpn_state_reconnecting;
             case "EXITING":
-                return R.string.state_exiting;
+                return R.string.ovpn_state_exiting;
             case "RESOLVE":
-                return R.string.state_resolve;
+                return R.string.ovpn_state_resolve;
             case "TCP_CONNECT":
-                return R.string.state_tcp_connect;
+                return R.string.ovpn_state_tcp_connect;
             case "AUTH_PENDING":
-                return R.string.state_auth_pending;
+                return R.string.ovpn_state_auth_pending;
             default:
-                return R.string.unknown_state;
+                return R.string.ovpn_unknown_state;
         }
 
     }
@@ -248,13 +248,13 @@ public class VpnStatus {
     public static void updateStatePause(OpenVPNManagement.pauseReason pauseReason) {
         switch (pauseReason) {
             case noNetwork:
-                VpnStatus.updateStateString("NONETWORK", "", R.string.state_nonetwork, ConnectionStatus.LEVEL_NONETWORK);
+                VpnStatus.updateStateString("NONETWORK", "", R.string.ovpn_state_nonetwork, ConnectionStatus.LEVEL_NONETWORK);
                 break;
             case screenOff:
-                VpnStatus.updateStateString("SCREENOFF", "", R.string.state_screenoff, ConnectionStatus.LEVEL_VPNPAUSED);
+                VpnStatus.updateStateString("SCREENOFF", "", R.string.ovpn_state_screenoff, ConnectionStatus.LEVEL_VPNPAUSED);
                 break;
             case userPause:
-                VpnStatus.updateStateString("USERPAUSE", "", R.string.state_userpause, ConnectionStatus.LEVEL_VPNPAUSED);
+                VpnStatus.updateStateString("USERPAUSE", "", R.string.ovpn_state_userpause, ConnectionStatus.LEVEL_VPNPAUSED);
                 break;
         }
 

@@ -221,7 +221,7 @@ class LogFileHandler extends Handler {
             }
 
         }
-        VpnStatus.logDebug(R.string.reread_log, itemsRead);
+        VpnStatus.logDebug(R.string.ovpn_reread_log, itemsRead);
     }
 
     protected void restoreLogItem(byte[] buf, int len) throws UnsupportedEncodingException {

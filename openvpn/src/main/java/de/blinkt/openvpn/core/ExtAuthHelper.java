@@ -68,7 +68,7 @@ public class ExtAuthHelper {
             if (extProviders.get(i).packageName.equals(selectedApp))
                 selectedPos = i;
         }
-        SpinnerAdapter extAppAdapter = new ArrayAdapter<ExternalAuthProvider>(c, android.R.layout.simple_spinner_item, android.R.id.text1, extProviders);
+        SpinnerAdapter extAppAdapter = new ArrayAdapter<>(c, android.R.layout.simple_spinner_item, android.R.id.text1, extProviders);
         spinner.setAdapter(extAppAdapter);
         if (selectedPos != -1)
             spinner.setSelection(selectedPos);
@@ -89,7 +89,7 @@ public class ExtAuthHelper {
 
         // For now only list those who appear in both lists
 
-        ArrayList<ExternalAuthProvider> providers = new ArrayList<ExternalAuthProvider>();
+        ArrayList<ExternalAuthProvider> providers = new ArrayList<>();
 
         for (ResolveInfo service : serviceList) {
             ExternalAuthProvider ext = new ExternalAuthProvider();

@@ -36,7 +36,7 @@ public class VPNLaunchHelper {
 
         String nativeAPI = NativeUtils.getNativeAPI();
         if (!nativeAPI.equals(abis[0])) {
-            VpnStatus.logWarning(R.string.abi_mismatch, Arrays.toString(abis), nativeAPI);
+            VpnStatus.logWarning(R.string.ovpn_abi_mismatch, Arrays.toString(abis), nativeAPI);
             abis = new String[]{nativeAPI};
         }
 
@@ -57,10 +57,7 @@ public class VPNLaunchHelper {
     }
 
     private static String getMiniVPNExecutableName() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-            return MINIPIEVPN;
-        else
-            return MININONPIEVPN;
+        return MINIPIEVPN;
     }
 
 

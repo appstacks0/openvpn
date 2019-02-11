@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -219,7 +220,7 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
                     Collections.addAll(mFDList, fds);
                 }
 
-                String input = new String(buffer, 0, numbytesread, "UTF-8");
+                String input = new String(buffer, 0, numbytesread, StandardCharsets.UTF_8);
 
                 pendingInput += input;
 
@@ -410,12 +411,12 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
         if (shouldBeRunning()) {
             if (waittime > 1)
                 VpnStatus.updateStateString("CONNECTRETRY", String.valueOf(waittime),
-                        R.string.state_waitconnectretry, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
+                        R.string.ovpn_state_waitconnectretry, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
             mResumeHandler.postDelayed(mResumeHoldRunnable, waittime * 1000);
             if (waittime > 5)
-                VpnStatus.logInfo(R.string.state_waitconnectretry, String.valueOf(waittime));
+                VpnStatus.logInfo(R.string.ovpn_state_waitconnectretry, String.valueOf(waittime));
             else
-                VpnStatus.logDebug(R.string.state_waitconnectretry, String.valueOf(waittime));
+                VpnStatus.logDebug(R.string.ovpn_state_waitconnectretry, String.valueOf(waittime));
 
         } else {
             VpnStatus.updateStatePause(lastPauseReason);
@@ -492,7 +493,7 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
 
 
         if (proxyType == Connection.ProxyType.ORBOT) {
-            VpnStatus.updateStateString("WAIT_ORBOT", "Waiting for Orbot to start", R.string.state_waitorbot, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
+            VpnStatus.updateStateString("WAIT_ORBOT", "Waiting for Orbot to start", R.string.ovpn_state_waitorbot, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
             OrbotHelper orbotHelper = OrbotHelper.get(mOpenVPNService);
             if (!orbotHelper.checkTorReceier(mOpenVPNService))
                 VpnStatus.logError("Orbot does not seem to be installed!");
@@ -510,7 +511,7 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
     private void sendProxyCMD(Connection.ProxyType proxyType, String proxyname, String proxyport, boolean usePwAuth) {
         if (proxyType != Connection.ProxyType.NONE && proxyname != null) {
 
-            VpnStatus.logInfo(R.string.using_proxy, proxyname, proxyname);
+            VpnStatus.logInfo(R.string.ovpn_using_proxy, proxyname, proxyname);
 
             String pwstr = usePwAuth ? " auto" : "";
 
@@ -692,17 +693,21 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
         String pw = null;
         String username = null;
 
-        if (needed.equals("Private Key")) {
-            pw = mProfile.getPasswordPrivateKey();
-        } else if (needed.equals("Auth")) {
-            pw = mProfile.getPasswordAuth();
-            username = mProfile.mUsername;
+        switch (needed) {
+            case "Private Key":
+                pw = mProfile.getPasswordPrivateKey();
+                break;
+            case "Auth":
+                pw = mProfile.getPasswordAuth();
+                username = mProfile.mUsername;
 
-        } else if (needed.equals("HTTP Proxy")) {
-            if (mCurrentProxyConnection != null) {
-                pw = mCurrentProxyConnection.mProxyAuthPassword;
-                username = mCurrentProxyConnection.mProxyAuthUser;
-            }
+                break;
+            case "HTTP Proxy":
+                if (mCurrentProxyConnection != null) {
+                    pw = mCurrentProxyConnection.mProxyAuthPassword;
+                    username = mCurrentProxyConnection.mProxyAuthUser;
+                }
+                break;
         }
         if (pw != null) {
             if (username != null) {
@@ -713,14 +718,14 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
             String cmd = String.format("password '%s' %s\n", needed, VpnProfile.openVpnEscape(pw));
             managmentCommand(cmd);
         } else {
-            mOpenVPNService.requestInputFromUser(R.string.password, needed);
+            mOpenVPNService.requestInputFromUser(R.string.ovpn_password, needed);
             VpnStatus.logError(String.format("Openvpn requires Authentication type '%s' but no password/key information available", needed));
         }
 
     }
 
     private void proccessPWFailed(String needed, String args) {
-        VpnStatus.updateStateString("AUTH_FAILED", needed + args, R.string.state_auth_failed, ConnectionStatus.LEVEL_AUTH_FAILED);
+        VpnStatus.updateStateString("AUTH_FAILED", needed + args, R.string.ovpn_state_auth_failed, ConnectionStatus.LEVEL_AUTH_FAILED);
     }
 
     @Override

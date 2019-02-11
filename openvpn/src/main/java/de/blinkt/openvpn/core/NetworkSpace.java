@@ -5,12 +5,12 @@
 
 package de.blinkt.openvpn.core;
 
-import android.os.Build;
 import android.support.annotation.NonNull;
 
 import java.math.BigInteger;
 import java.net.Inet6Address;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.PriorityQueue;
 import java.util.TreeSet;
@@ -21,7 +21,7 @@ import appstacks.vpn.core.BuildConfig;
 
 public class NetworkSpace {
 
-    TreeSet<IpAddress> mIpAddresses = new TreeSet<IpAddress>();
+    TreeSet<IpAddress> mIpAddresses = new TreeSet<>();
 
     static void assertTrue(boolean f) {
         if (!f)
@@ -29,7 +29,7 @@ public class NetworkSpace {
     }
 
     public Collection<IpAddress> getNetworks(boolean included) {
-        Vector<IpAddress> ips = new Vector<IpAddress>();
+        Vector<IpAddress> ips = new Vector<>();
         for (IpAddress ip : mIpAddresses) {
             if (ip.included == included)
                 ips.add(ip);
@@ -49,8 +49,7 @@ public class NetworkSpace {
     public void addIPSplit(CIDRIP cidrIp, boolean include) {
         IpAddress newIP = new IpAddress(cidrIp, include);
         IpAddress[] splitIps = newIP.split();
-        for (IpAddress split : splitIps)
-            mIpAddresses.add(split);
+        Collections.addAll(mIpAddresses, splitIps);
     }
 
     void addIPv6(Inet6Address address, int mask, boolean included) {
@@ -59,9 +58,9 @@ public class NetworkSpace {
 
     TreeSet<IpAddress> generateIPList() {
 
-        PriorityQueue<IpAddress> networks = new PriorityQueue<IpAddress>(mIpAddresses);
+        PriorityQueue<IpAddress> networks = new PriorityQueue<>(mIpAddresses);
 
-        TreeSet<IpAddress> ipsDone = new TreeSet<IpAddress>();
+        TreeSet<IpAddress> ipsDone = new TreeSet<>();
 
         IpAddress currentNet = networks.poll();
         if (currentNet == null)
@@ -148,39 +147,10 @@ public class NetworkSpace {
     Collection<IpAddress> getPositiveIPList() {
         TreeSet<IpAddress> ipsSorted = generateIPList();
 
-        Vector<IpAddress> ips = new Vector<IpAddress>();
+        Vector<IpAddress> ips = new Vector<>();
         for (IpAddress ia : ipsSorted) {
             if (ia.included)
                 ips.add(ia);
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            // Include postive routes from the original set under < 4.4 since these might overrule the local
-            // network but only if no smaller negative route exists
-            for (IpAddress origIp : mIpAddresses) {
-                if (!origIp.included)
-                    continue;
-
-                // The netspace exists
-                if (ipsSorted.contains(origIp))
-                    continue;
-
-                boolean skipIp = false;
-                // If there is any smaller net that is excluded we may not add the positive route back
-
-                for (IpAddress calculatedIp : ipsSorted) {
-                    if (!calculatedIp.included && origIp.containsNet(calculatedIp)) {
-                        skipIp = true;
-                        break;
-                    }
-                }
-                if (skipIp)
-                    continue;
-
-                // It is safe to include the IP
-                ips.add(origIp);
-            }
-
         }
 
         return ips;
@@ -234,12 +204,7 @@ public class NetworkSpace {
                 return comp;
 
 
-            if (networkMask > another.networkMask)
-                return -1;
-            else if (another.networkMask == networkMask)
-                return 0;
-            else
-                return 1;
+            return Integer.compare(another.networkMask, networkMask);
         }
 
         /**
@@ -308,7 +273,7 @@ public class NetworkSpace {
         String getIPv4Address() {
             if (BuildConfig.DEBUG) {
                 assertTrue(isV4);
-                assertTrue(netAddress.longValue() <= 0xffffffffl);
+                assertTrue(netAddress.longValue() <= 0xffffffffL);
                 assertTrue(netAddress.longValue() >= 0);
             }
             long ip = netAddress.longValue();

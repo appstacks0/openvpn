@@ -238,10 +238,7 @@ public class VpnProfile implements Serializable, Cloneable {
     public static boolean isEmbedded(String data) {
         if (data == null)
             return false;
-        if (data.startsWith(INLINE_TAG) || data.startsWith(DISPLAYNAME_TAG))
-            return true;
-        else
-            return false;
+        return data.startsWith(INLINE_TAG) || data.startsWith(DISPLAYNAME_TAG);
     }
 
     @Override
@@ -288,7 +285,7 @@ public class VpnProfile implements Serializable, Cloneable {
     public void upgradeProfile() {
         if (mProfileVersion < 2) {
             /* default to the behaviour the OS used */
-            mAllowLocalLAN = Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT;
+            mAllowLocalLAN = false;
         }
 
         if (mProfileVersion < 4) {
@@ -462,10 +459,7 @@ public class VpnProfile implements Serializable, Cloneable {
                         cfg.append("<cert>\n").append(ks[2]).append("\n</cert>\n");
                         cfg.append("management-external-key nopadding\n");
                     } else {
-                        cfg.append(context.getString(R.string.keychain_access)).append("\n");
-                        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN)
-                            if (!mAlias.matches("^[a-zA-Z0-9]$"))
-                                cfg.append(context.getString(R.string.jelly_keystore_alphanumeric_bug)).append("\n");
+                        cfg.append(context.getString(R.string.ovpn_keychain_access)).append("\n");
                     }
                 }
                 break;
@@ -526,17 +520,17 @@ public class VpnProfile implements Serializable, Cloneable {
         if (mUsePull && mRoutenopull)
             cfg.append("route-nopull\n");
 
-        String routes = "";
+        StringBuilder routes = new StringBuilder();
 
         if (mUseDefaultRoute)
-            routes += "route 0.0.0.0 0.0.0.0 vpn_gateway\n";
+            routes.append("route 0.0.0.0 0.0.0.0 vpn_gateway\n");
         else {
             for (String route : getCustomRoutes(mCustomRoutes)) {
-                routes += "route " + route + " vpn_gateway\n";
+                routes.append("route ").append(route).append(" vpn_gateway\n");
             }
 
             for (String route : getCustomRoutes(mExcludedRoutes)) {
-                routes += "route " + route + " net_gateway\n";
+                routes.append("route ").append(route).append(" net_gateway\n");
             }
         }
 
@@ -545,7 +539,7 @@ public class VpnProfile implements Serializable, Cloneable {
             cfg.append("route-ipv6 ::/0\n");
         else
             for (String route : getCustomRoutesv6(mCustomRoutesv6)) {
-                routes += "route-ipv6 " + route + "\n";
+                routes.append("route-ipv6 ").append(route).append("\n");
             }
 
         cfg.append(routes);
@@ -749,7 +743,6 @@ public class VpnProfile implements Serializable, Cloneable {
     }
 
     public Intent prepareStartService(Context context) {
-        Intent intent = getStartServiceIntent(context);
 
         // TODO: Handle this?!
 //        if (mAuthenticationType == VpnProfile.TYPE_KEYSTORE || mAuthenticationType == VpnProfile.TYPE_USERPASS_KEYSTORE) {
@@ -757,7 +750,7 @@ public class VpnProfile implements Serializable, Cloneable {
 //                return null;
 //        }
 
-        return intent;
+        return getStartServiceIntent(context);
     }
 
     public void writeConfigFile(Context context) throws IOException {
@@ -822,12 +815,10 @@ public class VpnProfile implements Serializable, Cloneable {
     }
 
     private X509Certificate[] getKeyStoreCertificates(Context context) throws KeyChainException, InterruptedException {
-        PrivateKey privateKey = KeyChain.getPrivateKey(context, mAlias);
-        mPrivateKey = privateKey;
+        mPrivateKey = KeyChain.getPrivateKey(context, mAlias);
 
 
-        X509Certificate[] caChain = KeyChain.getCertificateChain(context, mAlias);
-        return caChain;
+        return KeyChain.getCertificateChain(context, mAlias);
     }
 
     private X509Certificate[] getExtAppCertificates(Context context) throws KeyChainException {
@@ -859,7 +850,7 @@ public class VpnProfile implements Serializable, Cloneable {
                 throw new NoCertReturnedException("No certificate returned from Keystore");
 
             if (caChain.length <= 1 && TextUtils.isEmpty(mCaFilename)) {
-                VpnStatus.logMessage(VpnStatus.LogLevel.ERROR, "", context.getString(R.string.keychain_nocacert));
+                VpnStatus.logMessage(VpnStatus.LogLevel.ERROR, "", context.getString(R.string.ovpn_keychain_nocacert));
             } else {
                 StringWriter ksStringWriter = new StringWriter();
 
@@ -918,14 +909,9 @@ public class VpnProfile implements Serializable, Cloneable {
         } catch (InterruptedException | IOException | KeyChainException | NoCertReturnedException | IllegalArgumentException
                 | CertificateException e) {
             e.printStackTrace();
-            VpnStatus.logError(R.string.keyChainAccessError, e.getLocalizedMessage());
+            VpnStatus.logError(R.string.ovpn_keyChainAccessError, e.getLocalizedMessage());
 
-            VpnStatus.logError(R.string.keychain_access);
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN) {
-                if (!mAlias.matches("^[a-zA-Z0-9]$")) {
-                    VpnStatus.logError(R.string.jelly_keystore_alphanumeric_bug);
-                }
-            }
+            VpnStatus.logError(R.string.ovpn_keychain_access);
             return null;
 
         } catch (AssertionError e) {
@@ -950,38 +936,38 @@ public class VpnProfile implements Serializable, Cloneable {
     public int checkProfile(Context context, boolean useOpenVPN3) {
         if (mAuthenticationType == TYPE_KEYSTORE || mAuthenticationType == TYPE_USERPASS_KEYSTORE || mAuthenticationType == TYPE_EXTERNAL_APP) {
             if (mAlias == null)
-                return R.string.no_keystore_cert_selected;
+                return R.string.ovpn_no_keystore_cert_selected;
         } else if (mAuthenticationType == TYPE_CERTIFICATES || mAuthenticationType == TYPE_USERPASS_CERTIFICATES) {
             if (TextUtils.isEmpty(mCaFilename))
-                return R.string.no_ca_cert_selected;
+                return R.string.ovpn_no_ca_cert_selected;
         }
 
         if (mCheckRemoteCN && mX509AuthType == X509_VERIFY_TLSREMOTE)
-            return R.string.deprecated_tls_remote;
+            return R.string.ovpn_deprecated_tls_remote;
 
         if (!mUsePull || mAuthenticationType == TYPE_STATICKEYS) {
             if (mIPv4Address == null || cidrToIPAndNetmask(mIPv4Address) == null)
-                return R.string.ipv4_format_error;
+                return R.string.ovpn_ipv4_format_error;
         }
         if (!mUseDefaultRoute) {
             if (!TextUtils.isEmpty(mCustomRoutes) && getCustomRoutes(mCustomRoutes).size() == 0)
-                return R.string.custom_route_format_error;
+                return R.string.ovpn_custom_route_format_error;
 
             if (!TextUtils.isEmpty(mExcludedRoutes) && getCustomRoutes(mExcludedRoutes).size() == 0)
-                return R.string.custom_route_format_error;
+                return R.string.ovpn_custom_route_format_error;
 
         }
 
         if (mUseTLSAuth && TextUtils.isEmpty(mTLSAuthFilename))
-            return R.string.missing_tlsauth;
+            return R.string.ovpn_missing_tlsauth;
 
         if ((mAuthenticationType == TYPE_USERPASS_CERTIFICATES || mAuthenticationType == TYPE_CERTIFICATES)
                 && (TextUtils.isEmpty(mClientCertFilename) || TextUtils.isEmpty(mClientKeyFilename)))
-            return R.string.missing_certificates;
+            return R.string.ovpn_missing_certificates;
 
         if ((mAuthenticationType == TYPE_CERTIFICATES || mAuthenticationType == TYPE_USERPASS_CERTIFICATES)
                 && TextUtils.isEmpty(mCaFilename))
-            return R.string.missing_ca_certificate;
+            return R.string.ovpn_missing_ca_certificate;
 
 
         boolean noRemoteEnabled = true;
@@ -991,32 +977,32 @@ public class VpnProfile implements Serializable, Cloneable {
 
         }
         if (noRemoteEnabled)
-            return R.string.remote_no_server_selected;
+            return R.string.ovpn_remote_no_server_selected;
 
         if (useOpenVPN3) {
             if (mAuthenticationType == TYPE_STATICKEYS) {
-                return R.string.openvpn3_nostatickeys;
+                return R.string.ovpn_openvpn3_nostatickeys;
             }
             if (mAuthenticationType == TYPE_PKCS12 || mAuthenticationType == TYPE_USERPASS_PKCS12) {
-                return R.string.openvpn3_pkcs12;
+                return R.string.ovpn_openvpn3_pkcs12;
             }
             for (Connection conn : mConnections) {
                 if (conn.mProxyType == Connection.ProxyType.ORBOT || conn.mProxyType == Connection.ProxyType.SOCKS5)
-                    return R.string.openvpn3_socksproxy;
+                    return R.string.ovpn_openvpn3_socksproxy;
             }
         }
         for (Connection c : mConnections) {
             if (c.mProxyType == Connection.ProxyType.ORBOT) {
                 if (usesExtraProxyOptions())
-                    return R.string.error_orbot_and_proxy_options;
+                    return R.string.ovpn_error_orbot_and_proxy_options;
                 if (!OrbotHelper.checkTorReceier(context))
-                    return R.string.no_orbotfound;
+                    return R.string.ovpn_no_orbotfound;
             }
         }
 
 
         // Everything okay
-        return R.string.no_error_found;
+        return R.string.ovpn_no_error_found;
 
     }
 
@@ -1060,9 +1046,9 @@ public class VpnProfile implements Serializable, Cloneable {
         if (TextUtils.isEmpty(mClientKeyFilename))
             return false;
 
-        String data = "";
+        StringBuilder data = new StringBuilder();
         if (isEmbedded(mClientKeyFilename))
-            data = mClientKeyFilename;
+            data = new StringBuilder(mClientKeyFilename);
         else {
             char[] buf = new char[2048];
             FileReader fr;
@@ -1070,7 +1056,7 @@ public class VpnProfile implements Serializable, Cloneable {
                 fr = new FileReader(mClientKeyFilename);
                 int len = fr.read(buf);
                 while (len > 0) {
-                    data += new String(buf, 0, len);
+                    data.append(new String(buf, 0, len));
                     len = fr.read(buf);
                 }
                 fr.close();
@@ -1082,32 +1068,29 @@ public class VpnProfile implements Serializable, Cloneable {
 
         }
 
-        if (data.contains("Proc-Type: 4,ENCRYPTED"))
+        if (data.toString().contains("Proc-Type: 4,ENCRYPTED"))
             return true;
-        else if (data.contains("-----BEGIN ENCRYPTED PRIVATE KEY-----"))
-            return true;
-        else
-            return false;
+        else return data.toString().contains("-----BEGIN ENCRYPTED PRIVATE KEY-----");
     }
 
     public int needUserPWInput(String transientCertOrPkcs12PW, String mTransientAuthPW) {
         if ((mAuthenticationType == TYPE_PKCS12 || mAuthenticationType == TYPE_USERPASS_PKCS12) &&
                 (mPKCS12Password == null || mPKCS12Password.equals(""))) {
             if (transientCertOrPkcs12PW == null)
-                return R.string.pkcs12_file_encryption_key;
+                return R.string.ovpn_pkcs12_file_encryption_key;
         }
 
         if (mAuthenticationType == TYPE_CERTIFICATES || mAuthenticationType == TYPE_USERPASS_CERTIFICATES) {
             if (requireTLSKeyPassword() && TextUtils.isEmpty(mKeyPassword))
                 if (transientCertOrPkcs12PW == null) {
-                    return R.string.private_key_password;
+                    return R.string.ovpn_private_key_password;
                 }
         }
 
         if (isUserPWAuth() &&
                 (TextUtils.isEmpty(mUsername) ||
                         (TextUtils.isEmpty(mPassword) && mTransientAuthPW == null))) {
-            return R.string.password;
+            return R.string.ovpn_password;
         }
         return 0;
     }
@@ -1156,7 +1139,7 @@ public class VpnProfile implements Serializable, Cloneable {
         try {
             return ExtAuthHelper.signData(c, mExternalAuthenticator, mAlias, data);
         } catch (KeyChainException | InterruptedException e) {
-            VpnStatus.logError(R.string.error_extapp_sign, mExternalAuthenticator, e.getClass().toString(), e.getLocalizedMessage());
+            VpnStatus.logError(R.string.ovpn_error_extapp_sign, mExternalAuthenticator, e.getClass().toString(), e.getLocalizedMessage());
             return null;
         }
     }
@@ -1166,9 +1149,6 @@ public class VpnProfile implements Serializable, Cloneable {
         PrivateKey privkey = getKeystoreKey();
         // The Jelly Bean *evil* Hack
         // 4.2 implements the RSA/ECB/PKCS1PADDING in the OpenSSLprovider
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN) {
-            return processSignJellyBeans(privkey, data);
-        }
 
 
         try {
@@ -1201,7 +1181,7 @@ public class VpnProfile implements Serializable, Cloneable {
             return signed_bytes;
         } catch (NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException
                 | BadPaddingException | NoSuchPaddingException | SignatureException e) {
-            VpnStatus.logError(R.string.error_rsa_sign, e.getClass().toString(), e.getLocalizedMessage());
+            VpnStatus.logError(R.string.ovpn_error_rsa_sign, e.getClass().toString(), e.getLocalizedMessage());
             return null;
         }
     }
@@ -1227,7 +1207,7 @@ public class VpnProfile implements Serializable, Cloneable {
             return NativeUtils.rsasign(data, pkey);
 
         } catch (NoSuchMethodException | InvalidKeyException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-            VpnStatus.logError(R.string.error_rsa_sign, e.getClass().toString(), e.getLocalizedMessage());
+            VpnStatus.logError(R.string.ovpn_error_rsa_sign, e.getClass().toString(), e.getLocalizedMessage());
             return null;
         }
     }

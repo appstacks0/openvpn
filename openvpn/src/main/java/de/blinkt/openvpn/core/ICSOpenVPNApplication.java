@@ -52,11 +52,11 @@ public abstract class ICSOpenVPNApplication extends Application {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         // Background message
-        CharSequence name = getString(R.string.channel_name_background);
+        CharSequence name = getString(R.string.ovpn_channel_name_background);
         NotificationChannel mChannel = new NotificationChannel(OpenVPNService.NOTIFICATION_CHANNEL_BG_ID,
                 name, NotificationManager.IMPORTANCE_MIN);
 
-        mChannel.setDescription(getString(R.string.channel_description_background));
+        mChannel.setDescription(getString(R.string.ovpn_channel_description_background));
         mChannel.enableLights(false);
 
         mChannel.setLightColor(Color.DKGRAY);
@@ -64,11 +64,11 @@ public abstract class ICSOpenVPNApplication extends Application {
 
         // Connection status change messages
 
-        name = getString(R.string.channel_name_status);
+        name = getString(R.string.ovpn_channel_name_status);
         mChannel = new NotificationChannel(OpenVPNService.NOTIFICATION_CHANNEL_NEWSTATUS_ID,
                 name, NotificationManager.IMPORTANCE_LOW);
 
-        mChannel.setDescription(getString(R.string.channel_description_status));
+        mChannel.setDescription(getString(R.string.ovpn_channel_description_status));
         mChannel.enableLights(true);
 
         mChannel.setLightColor(Color.BLUE);
@@ -76,10 +76,10 @@ public abstract class ICSOpenVPNApplication extends Application {
 
 
         // Urgent requests, e.g. two factor auth
-        name = getString(R.string.channel_name_userreq);
+        name = getString(R.string.ovpn_channel_name_userreq);
         mChannel = new NotificationChannel(OpenVPNService.NOTIFICATION_CHANNEL_USERREQ_ID,
                 name, NotificationManager.IMPORTANCE_HIGH);
-        mChannel.setDescription(getString(R.string.channel_description_userreq));
+        mChannel.setDescription(getString(R.string.ovpn_channel_description_userreq));
         mChannel.enableVibration(true);
         mChannel.setLightColor(Color.CYAN);
         mNotificationManager.createNotificationChannel(mChannel);

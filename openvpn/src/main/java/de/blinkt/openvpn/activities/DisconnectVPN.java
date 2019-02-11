@@ -59,11 +59,11 @@ public class DisconnectVPN extends Activity implements DialogInterface.OnClickLi
 
     private void showDisconnectDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.title_cancel);
-        builder.setMessage(R.string.cancel_connection_query);
+        builder.setTitle(R.string.ovpn_title_cancel);
+        builder.setMessage(R.string.ovpn_cancel_connection_query);
         builder.setNegativeButton(android.R.string.cancel, this);
-        builder.setPositiveButton(R.string.cancel_connection, this);
-        builder.setNeutralButton(R.string.reconnect, this);
+        builder.setPositiveButton(R.string.ovpn_cancel_connection, this);
+        builder.setNeutralButton(R.string.ovpn_reconnect, this);
         builder.setOnCancelListener(this);
 
         builder.show();
