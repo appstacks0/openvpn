@@ -31,6 +31,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.system.OsConstants;
 import android.text.TextUtils;
 import android.util.Log;
@@ -233,7 +234,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         int icon = getIconByConnectionStatus(status);
 
-        Notification.Builder nbuilder = new Notification.Builder(this);
+        NotificationCompat.Builder nbuilder = new NotificationCompat.Builder(this, channel);
 
         int priority;
         switch (channel) {
@@ -286,8 +287,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
         if (tickerText != null && !tickerText.equals(""))
             nbuilder.setTicker(tickerText);
 
-        @SuppressWarnings("deprecation")
-        Notification notification = nbuilder.getNotification();
+        Notification notification = nbuilder.build();
 
         int notificationId = channel.hashCode();
 
@@ -327,7 +327,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void lpNotificationExtras(Notification.Builder nbuilder, String category) {
+    private void lpNotificationExtras(NotificationCompat.Builder nbuilder, String category) {
         nbuilder.setCategory(category);
         nbuilder.setLocalOnly(true);
 
@@ -363,7 +363,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void jbNotificationExtras(int priority,
-                                      Notification.Builder nbuilder) {
+                                      NotificationCompat.Builder nbuilder) {
         try {
             if (priority != 0) {
                 Method setpriority = nbuilder.getClass().getMethod("setPriority", int.class);
@@ -383,7 +383,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private void addVpnActionsToNotification(Notification.Builder nbuilder) {
+    private void addVpnActionsToNotification(NotificationCompat.Builder nbuilder) {
         Intent disconnectVPN = new Intent(this, DisconnectVPN.class);
         disconnectVPN.setAction(DISCONNECT_VPN);
         PendingIntent disconnectPendingIntent = PendingIntent.getActivity(this, 0, disconnectVPN, 0);
@@ -1212,7 +1212,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Notification.Builder nbuilder = new Notification.Builder(this);
+        NotificationCompat.Builder nbuilder = new NotificationCompat.Builder(this, channel);
         nbuilder.setContentTitle(getString(R.string.ovpn_openurl_requested));
 
         nbuilder.setContentText(url);
@@ -1240,8 +1240,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             nbuilder.setChannelId(channel);
         }
 
-        @SuppressWarnings("deprecation")
-        Notification notification = nbuilder.getNotification();
+        Notification notification = nbuilder.build();
 
         int notificationId = channel.hashCode();
 
