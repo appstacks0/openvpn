@@ -741,7 +741,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
                 addLocalNetworksToRoutes();
             try {
                 builder.addAddress(mLocalIP.mIp, mLocalIP.len);
-            } catch (IllegalArgumentException iae) {
+            } catch (Exception iae) {
                 VpnStatus.logError(R.string.ovpn_dns_add_error, mLocalIP, iae.getLocalizedMessage());
                 return null;
             }
