@@ -15,6 +15,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.Vector;
 
 import appstacks.vpn.core.R;
@@ -125,15 +127,29 @@ public class VPNLaunchHelper {
 
 
     public static void startOpenVpn(VpnProfile startprofile, Context context) {
-        Intent startVPN = startprofile.prepareStartService(context);
-        if (startVPN != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                //noinspection NewApi
-                context.startForegroundService(startVPN);
-            else
-                context.startService(startVPN);
-
+        Intent startVPN;
+        if (startprofile == null) {
+            startVPN = getStartServiceIntent(context);
+        } else {
+            startVPN = startprofile.prepareStartService(context);
         }
+        if (startVPN == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            //noinspection NewApi
+            context.startForegroundService(startVPN);
+        else
+            context.startService(startVPN);
+    }
+
+    public static Intent getStartServiceIntent(Context context) {
+        String prefix = context.getPackageName();
+
+        String uuid = UUID.randomUUID().toString().toLowerCase(Locale.ENGLISH);
+
+        Intent intent = new Intent(context, OpenVPNService.class);
+        intent.putExtra(prefix + ".profileUUID", uuid);
+        intent.putExtra(prefix + ".profileVersion", 0);
+        return intent;
     }
 
 
