@@ -902,7 +902,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             String[] netparts = net.split("/");
             String ipAddr = netparts[0];
             int netMask = Integer.parseInt(netparts[1]);
-            if (ipAddr.equals(mLocalIP.mIp))
+            if (TextUtils.equals(ipAddr, mLocalIP.mIp))
                 continue;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && mProfile.mAllowLocalLAN)
