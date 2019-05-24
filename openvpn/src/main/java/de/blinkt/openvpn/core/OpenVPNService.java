@@ -760,9 +760,10 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             }
 
         }
+        //noinspection UnnecessaryLocalVariable
+        Vector<String> dnsList = mDnslist;
 
-
-        for (String dns : mDnslist) {
+        for (String dns : dnsList) {
             try {
                 builder.addDnsServer(dns);
             } catch (IllegalArgumentException iae) {
