@@ -729,7 +729,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
 
         VpnStatus.logInfo(R.string.ovpn_last_openvpn_tun_config);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mProfile.mAllowLocalLAN) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mProfile != null && mProfile.mAllowLocalLAN) {
             allowAllAFFamilies(builder);
         }
 
@@ -854,7 +854,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
         }
 
 
-        String session = mProfile.mName;
+        String session = mProfile == null ? "" : mProfile.mName;
         if (mLocalIP != null && mLocalIPv6 != null)
             session = getString(R.string.ovpn_session_ipv6string, session, mLocalIP, mLocalIPv6);
         else if (mLocalIP != null)
@@ -908,12 +908,12 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             if (TextUtils.equals(ipAddr, mLocalIP.mIp))
                 continue;
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && mProfile.mAllowLocalLAN)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && mProfile != null && mProfile.mAllowLocalLAN)
                 mRoutes.addIP(new CIDRIP(ipAddr, netMask), false);
         }
 
         // IPv6 is Lollipop+ only so we can skip the lower than KITKAT case
-        if (mProfile.mAllowLocalLAN) {
+        if (mProfile != null && mProfile.mAllowLocalLAN) {
             for (String net : NetworkUtils.getLocalNetworks(this, true)) {
                 addRoutev6(net, false);
             }
@@ -925,6 +925,8 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void setAllowedVpnPackages(Builder builder) {
         boolean profileUsesOrBot = false;
+
+        if (mProfile == null) return;
 
         for (Connection c : mProfile.mConnections) {
             if (c.mProxyType == Connection.ProxyType.ORBOT)
