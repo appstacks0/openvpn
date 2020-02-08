@@ -31,7 +31,6 @@
         </service>
         <service
             android:name="de.blinkt.openvpn.api.ExternalOpenVPNService"
-            android:process=":openvpn"
             tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="de.blinkt.openvpn.api.IOpenVPNAPIService" />
@@ -39,8 +38,7 @@
         </service>
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNStatusService"
-            android:exported="false"
-            android:process=":openvpn" />
+            android:exported="false" />
 
         <activity android:name="de.blinkt.openvpn.api.GrantPermissionsActivity">
             <intent-filter>
