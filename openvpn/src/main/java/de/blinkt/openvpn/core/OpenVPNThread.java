@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 
 import appstacks.vpn.core.R;
 
-
 public class OpenVPNThread implements Runnable {
     public static final int M_FATAL = (1 << 4);
     public static final int M_NONFATAL = (1 << 5);
@@ -35,6 +34,8 @@ public class OpenVPNThread implements Runnable {
     private static final String BROKEN_PIE_SUPPORT = "/data/data/de.blinkt.openvpn/cache/pievpn";
     private final static String BROKEN_PIE_SUPPORT2 = "syntax error";
     private static final String TAG = "OpenVPN";
+    // 1380308330.240114 18000002 Send to HTTP proxy: 'X-Online-Host: bla.blabla.com'
+    private static final Pattern LOG_PATTERN = Pattern.compile("(\\d+).(\\d+) ([0-9a-f])+ (.*)");
     private String[] mArgv;
     private Process mProcess;
     private String mNativeDir;
@@ -148,11 +149,7 @@ public class OpenVPNThread implements Runnable {
                 if (logline.startsWith(BROKEN_PIE_SUPPORT) || logline.contains(BROKEN_PIE_SUPPORT2))
                     mBrokenPie = true;
 
-
-                // 1380308330.240114 18000002 Send to HTTP proxy: 'X-Online-Host: bla.blabla.com'
-
-                Pattern p = Pattern.compile("(\\d+).(\\d+) ([0-9a-f])+ (.*)");
-                Matcher m = p.matcher(logline);
+                Matcher m = LOG_PATTERN.matcher(logline);
                 int logerror = 0;
                 if (m.matches()) {
                     int flags = Integer.parseInt(m.group(3), 16);

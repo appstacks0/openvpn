@@ -106,8 +106,19 @@ public class ExternalOpenVPNService extends Service implements StateListener {
 
         private void startProfile(VpnProfile vp) {
             Intent vpnPermissionIntent = VpnService.prepare(ExternalOpenVPNService.this);
-            int needPW = vp.needUserPWInput(null, null);
-            if (vpnPermissionIntent == null && needPW == 0) {
+            /* Check if we need to show the confirmation dialog,
+             * Check if we need to ask for username/password */
+
+            int neddPassword = vp.needUserPWInput(null, null);
+
+            if (vpnPermissionIntent != null || neddPassword != 0) {
+                Intent shortVPNIntent = new Intent(Intent.ACTION_MAIN);
+                shortVPNIntent.setClass(getBaseContext(), de.blinkt.openvpn.LaunchVPN.class);
+                shortVPNIntent.putExtra(de.blinkt.openvpn.LaunchVPN.EXTRA_KEY, vp.getUUIDString());
+                shortVPNIntent.putExtra(de.blinkt.openvpn.LaunchVPN.EXTRA_HIDELOG, true);
+                shortVPNIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(shortVPNIntent);
+            } else {
                 VPNLaunchHelper.startOpenVpn(vp, getBaseContext());
             }
         }
@@ -300,7 +311,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
     }
 
     @Override
-    public void updateState(String state, String logmessage, int resid, ConnectionStatus level) {
+    public void updateState(String state, String logmessage, int resid, ConnectionStatus level, Intent intent) {
         mMostRecentState = new UpdateMessage(state, logmessage, level);
         if (ProfileManager.getLastConnectedVpn() != null)
             mMostRecentState.vpnUUID = ProfileManager.getLastConnectedVpn().getUUIDString();

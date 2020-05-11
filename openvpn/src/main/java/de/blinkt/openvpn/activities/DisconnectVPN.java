@@ -16,6 +16,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 
 import appstacks.vpn.core.R;
+import de.blinkt.openvpn.LaunchVPN;
 import de.blinkt.openvpn.core.IOpenVPNServiceInternal;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
@@ -80,6 +81,11 @@ public class DisconnectVPN extends Activity implements DialogInterface.OnClickLi
                     VpnStatus.logException(e);
                 }
             }
+        } else if (which == DialogInterface.BUTTON_NEUTRAL) {
+            Intent intent = new Intent(this, LaunchVPN.class);
+            intent.putExtra(LaunchVPN.EXTRA_KEY, VpnStatus.getLastConnectedVPNProfile());
+            intent.setAction(Intent.ACTION_MAIN);
+            startActivity(intent);
         }
         finish();
     }

@@ -15,8 +15,6 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.security.KeyChain;
 import android.security.KeyChainException;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Base64;
 
@@ -51,6 +49,8 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import appstacks.vpn.core.R;
 import de.blinkt.openvpn.core.Connection;
 import de.blinkt.openvpn.core.ExtAuthHelper;
@@ -58,6 +58,7 @@ import de.blinkt.openvpn.core.NativeUtils;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.OrbotHelper;
 import de.blinkt.openvpn.core.PasswordCache;
+import de.blinkt.openvpn.core.Preferences;
 import de.blinkt.openvpn.core.VPNLaunchHelper;
 import de.blinkt.openvpn.core.VpnStatus;
 import de.blinkt.openvpn.core.X509Utils;
@@ -74,7 +75,7 @@ public class VpnProfile implements Serializable, Cloneable {
     public static final String INLINE_TAG = "[[INLINE]]";
     public static final String DISPLAYNAME_TAG = "[[NAME]]";
     public static final int MAXLOGLEVEL = 4;
-    public static final int CURRENT_PROFILE_VERSION = 7;
+    public static final int CURRENT_PROFILE_VERSION = 8;
     public static final int DEFAULT_MSSFIX_SIZE = 1280;
     public static final int TYPE_CERTIFICATES = 0;
     public static final int TYPE_PKCS12 = 1;
@@ -171,6 +172,7 @@ public class VpnProfile implements Serializable, Cloneable {
     public String mServerPort = "1194";
     public boolean mUseUdp = true;
     public boolean mTemporaryProfile = false;
+    public boolean mBlockUnusedAddressFamilies = true;
     private transient PrivateKey mPrivateKey;
     // Public attributes, since I got mad with getter/setter
     // set members to default values
@@ -204,9 +206,8 @@ public class VpnProfile implements Serializable, Cloneable {
     }
 
     public static boolean doUseOpenVPN3(Context c) {
-//        SharedPreferences prefs = Preferences.getDefaultSharedPreferences(c);
-//        return prefs.getBoolean("ovpn3", false);
-        return false;
+        SharedPreferences prefs = Preferences.getDefaultSharedPreferences(c);
+        return prefs.getBoolean("ovpn3", false);
     }
 
     //! Put inline data inline and other data as normal escaped filename
@@ -283,29 +284,36 @@ public class VpnProfile implements Serializable, Cloneable {
     }
 
     public void upgradeProfile() {
-        if (mProfileVersion < 2) {
-            /* default to the behaviour the OS used */
-            mAllowLocalLAN = false;
-        }
 
-        if (mProfileVersion < 4) {
-            moveOptionsToConnection();
-            mAllowedAppsVpnAreDisallowed = true;
-        }
-        if (mAllowedAppsVpn == null)
-            mAllowedAppsVpn = new HashSet<>();
+        /* Fallthrough is intended here */
+        switch (mProfileVersion) {
+            case 0:
+            case 1:
+                /* default to the behaviour the OS used */
+                mAllowLocalLAN = Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT;
+            case 2:
+            case 3:
+                moveOptionsToConnection();
+                mAllowedAppsVpnAreDisallowed = true;
 
-        if (mConnections == null)
-            mConnections = new Connection[0];
+                if (mAllowedAppsVpn == null)
+                    mAllowedAppsVpn = new HashSet<>();
 
-        if (mProfileVersion < 6) {
-            if (TextUtils.isEmpty(mProfileCreator))
-                mUserEditable = true;
-        }
-        if (mProfileVersion < 7) {
-            for (Connection c : mConnections)
-                if (c.mProxyType == null)
-                    c.mProxyType = Connection.ProxyType.NONE;
+                if (mConnections == null)
+                    mConnections = new Connection[0];
+            case 4:
+            case 5:
+
+                if (TextUtils.isEmpty(mProfileCreator))
+                    mUserEditable = true;
+            case 6:
+                for (Connection c : mConnections)
+                    if (c.mProxyType == null)
+                        c.mProxyType = Connection.ProxyType.NONE;
+            case 7:
+                if (mAllowAppVpnBypass)
+                    mBlockUnusedAddressFamilies = !mAllowAppVpnBypass;
+            default:
         }
 
         mProfileVersion = CURRENT_PROFILE_VERSION;
@@ -345,6 +353,7 @@ public class VpnProfile implements Serializable, Cloneable {
             cfg.append("management-hold\n\n");
 
             cfg.append(String.format("setenv IV_GUI_VER %s \n", openVpnEscape(getVersionEnvString(context))));
+            cfg.append("setenv IV_SSO openurl,crtext\n");
             String versionString = getPlatformVersionEnvString();
             cfg.append(String.format("setenv IV_PLAT_VER %s\n", openVpnEscape(versionString)));
         } else {
@@ -840,7 +849,7 @@ public class VpnProfile implements Serializable, Cloneable {
         try {
             String keystoreChain = null;
 
-            X509Certificate caChain[];
+            X509Certificate[] caChain;
             if (mAuthenticationType == TYPE_EXTERNAL_APP) {
                 caChain = getExtAppCertificates(context);
             } else {
@@ -1186,7 +1195,7 @@ public class VpnProfile implements Serializable, Cloneable {
         }
     }
 
-    private byte[] processSignJellyBeans(PrivateKey privkey, byte[] data) {
+    private byte[] processSignJellyBeans(PrivateKey privkey, byte[] data, boolean pkcs1padding) {
         try {
             Method getKey = privkey.getClass().getSuperclass().getDeclaredMethod("getOpenSSLKey");
             getKey.setAccessible(true);
@@ -1204,7 +1213,7 @@ public class VpnProfile implements Serializable, Cloneable {
             getPkeyContext.setAccessible(false);
 
             // 112 with TLS 1.2 (172 back with 4.3), 36 with TLS 1.0
-            return NativeUtils.rsasign(data, pkey);
+            return NativeUtils.rsasign(data, pkey, pkcs1padding);
 
         } catch (NoSuchMethodException | InvalidKeyException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
             VpnStatus.logError(R.string.ovpn_error_rsa_sign, e.getClass().toString(), e.getLocalizedMessage());

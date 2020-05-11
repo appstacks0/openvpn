@@ -13,8 +13,6 @@ import android.net.LocalSocketAddress;
 import android.os.Build;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.system.Os;
 import android.util.Log;
 
@@ -32,6 +30,8 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Vector;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import appstacks.vpn.core.R;
 import de.blinkt.openvpn.VpnProfile;
 
@@ -53,12 +53,9 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
     private pauseReason lastPauseReason = pauseReason.noNetwork;
     private PausedStateCallback mPauseCallback;
     private boolean mShuttingDown;
-    private Runnable mResumeHoldRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (shouldBeRunning()) {
-                releaseHoldCmd();
-            }
+    private Runnable mResumeHoldRunnable = () -> {
+        if (shouldBeRunning()) {
+            releaseHoldCmd();
         }
     };
     private OrbotHelper.StatusCallback statusCallback = new OrbotHelper.StatusCallback() {
@@ -349,8 +346,10 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
     }
 
     private void processInfoMessage(String info) {
-        if (info.startsWith("OPEN_URL:")) {
-            mOpenVPNService.trigger_url_open(info);
+        if (info.startsWith("OPEN_URL:") || info.startsWith("CR_TEXT:")) {
+            mOpenVPNService.trigger_sso(info);
+        } else {
+            VpnStatus.logDebug("Info message from server:" + info);
         }
     }
 
@@ -495,7 +494,7 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
         if (proxyType == Connection.ProxyType.ORBOT) {
             VpnStatus.updateStateString("WAIT_ORBOT", "Waiting for Orbot to start", R.string.ovpn_state_waitorbot, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
             OrbotHelper orbotHelper = OrbotHelper.get(mOpenVPNService);
-            if (!orbotHelper.checkTorReceier(mOpenVPNService))
+            if (!OrbotHelper.checkTorReceier(mOpenVPNService))
                 VpnStatus.logError("Orbot does not seem to be installed!");
 
             mResumeHandler.postDelayed(orbotStatusTimeOutRunnable, ORBOT_TIMEOUT_MS);
@@ -743,6 +742,11 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
         mPauseCallback = callback;
     }
 
+    @Override
+    public void sendCRResponse(String response) {
+        managmentCommand("cr-response " + response + "\n");
+    }
+
     public void signalusr1() {
         mResumeHandler.removeCallbacks(mResumeHoldRunnable);
         if (!mWaitingForRelease)
@@ -762,7 +766,7 @@ public class OpenVpnManagementThread implements Runnable, OpenVPNManagement {
 
         String[] arguments = argument.split(",");
 
-        boolean pkcs1padding = arguments[1].equals("PKCS1");
+        boolean pkcs1padding = arguments[1].equals("RSA_PKCS1_PADDING");
         String signed_string = mProfile.getSignedData(mOpenVPNService, arguments[0], pkcs1padding);
 
         if (signed_string == null) {

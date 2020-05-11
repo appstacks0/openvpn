@@ -16,7 +16,7 @@ public class NativeUtils {
         System.loadLibrary("opvpnutil");
     }
 
-    public static native byte[] rsasign(byte[] input, int pkey) throws InvalidKeyException;
+    public static native byte[] rsasign(byte[] input, int pkey, boolean pkcs1padding) throws InvalidKeyException;
 
     public static native String[] getIfconfig() throws IllegalArgumentException;
 

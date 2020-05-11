@@ -112,7 +112,7 @@ class LogFileHandler extends Handler {
             if (b == MAGIC_BYTE || b == MAGIC_BYTE + 1)
                 magic++;
 
-        byte eBytes[] = new byte[bytes.length + magic];
+        byte[] eBytes = new byte[bytes.length + magic];
 
         int i = 0;
         for (byte b : bytes) {
@@ -187,7 +187,7 @@ class LogFileHandler extends Handler {
 
             // Marshalled LogItem
             int pos = 0;
-            byte buf2[] = new byte[buf.length];
+            byte[] buf2 = new byte[buf.length];
 
             while (pos < len) {
                 byte b = (byte) logFile.read();

@@ -51,5 +51,45 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name="de.blinkt.openvpn.OnBootReceiver">
+            <intent-filter android:priority="999">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="de.blinkt.openvpn.LaunchVPN"
+            android:autoRemoveFromRecents="true"
+            android:excludeFromRecents="true"
+            android:label="@string/ovpn_vpn_launch_title"
+            android:taskAffinity=".LaunchVPN"
+            android:theme="@style/blinkt.dialog"
+            tools:ignore="ExportedActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="de.blinkt.openvpn.FileProvider"
+            android:authorities="de.blinkt.openvpn.FileProvider"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            tools:ignore="ExportedContentProvider" />
+
+        <activity android:name="de.blinkt.openvpn.api.RemoteAction" />
+
+        <activity-alias
+            android:name=".ConnectVPN"
+            android:exported="true"
+            android:targetActivity="de.blinkt.openvpn.api.RemoteAction" />
+        <activity-alias
+            android:name=".DisconnectVPN"
+            android:exported="true"
+            android:targetActivity="de.blinkt.openvpn.api.RemoteAction" />
+
     </application>
 </manifest>

@@ -71,7 +71,7 @@ public class AppRestrictions {
         MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA1");
-            byte utf8_bytes[] = config.getBytes();
+            byte[] utf8_bytes = config.getBytes();
             digest.update(utf8_bytes, 0, utf8_bytes.length);
             return new BigInteger(1, digest.digest()).toString(16);
         } catch (NoSuchAlgorithmException e) {
@@ -93,6 +93,9 @@ public class AppRestrictions {
             if (Integer.parseInt(configVersion) != CONFIG_VERSION)
                 throw new NumberFormatException("Wrong version");
         } catch (NumberFormatException nex) {
+            if ("(not set)".equals(configVersion))
+                // Ignore error if no version present
+                return;
             VpnStatus.logError(String.format(Locale.US, "App restriction version %s does not match expected version %d", configVersion, CONFIG_VERSION));
             return;
         }
@@ -153,7 +156,22 @@ public class AppRestrictions {
 
     }
 
+    private String prepare(String config) {
+        String newLine = System.getProperty("line.separator");
+        if (!config.contains(newLine) && !config.contains(" ")) {
+            try {
+                byte[] decoded = android.util.Base64.decode(config.getBytes(), android.util.Base64.DEFAULT);
+                config = new String(decoded);
+                return config;
+            } catch (IllegalArgumentException e) {
+
+            }
+        }
+        return config;
+    }
+
     private void addProfile(Context c, String config, String uuid, String name, VpnProfile vpnProfile) {
+        config = prepare(config);
         ConfigParser cp = new ConfigParser();
         try {
             cp.parseConfig(new StringReader(config));

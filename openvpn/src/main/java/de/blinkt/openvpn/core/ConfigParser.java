@@ -6,7 +6,6 @@
 package de.blinkt.openvpn.core;
 
 import android.os.Build;
-import android.support.v4.util.Pair;
 import android.text.TextUtils;
 
 import java.io.BufferedReader;
@@ -21,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 
+import androidx.core.util.Pair;
 import de.blinkt.openvpn.VpnProfile;
 
 //! Openvpn Config FIle Parser, probably not 100% accurate but close enough
@@ -96,6 +96,7 @@ public class ConfigParser {
     private final String[][] ignoreOptionsWithArg =
             {
                     {"setenv", "IV_GUI_VER"},
+                    {"setenv", "IV_SSO"},
                     {"setenv", "IV_PLAT_VER"},
                     {"setenv", "IV_OPENVPN_GUI_VERSION"},
                     {"engine", "dynamic"},
@@ -201,7 +202,7 @@ public class ConfigParser {
                     optionname = optionAliases.get(optionname);
 
                 if (!options.containsKey(optionname)) {
-                    options.put(optionname, new Vector<Vector<String>>());
+                    options.put(optionname, new Vector<>());
                 }
                 options.get(optionname).add(args);
             }
@@ -462,7 +463,7 @@ public class ConfigParser {
             throw new ConfigParseError("Sorry. Only tun mode is supported. See the FAQ for more detail");
         }
 
-        Vector<String> mssfix = getOption("mssfix", 0, 1);
+        Vector<String> mssfix = getOption("mssfix", 0, 2);
 
         if (mssfix != null) {
             if (mssfix.size() >= 2) {
@@ -473,6 +474,10 @@ public class ConfigParser {
                 }
             } else {
                 np.mMssFix = 1450; // OpenVPN default size
+            }
+            // Ignore mtu argument of OpenVPN3 and report error otherwise
+            if (mssfix.size() >= 3 && !(mssfix.get(2).equals("mtu"))) {
+                throw new ConfigParseError("Second argument to --mssfix unkonwn");
             }
         }
 
@@ -500,14 +505,17 @@ public class ConfigParser {
             for (Vector<String> dhcpoption : dhcpoptions) {
                 String type = dhcpoption.get(1);
                 String arg = dhcpoption.get(2);
-                if (type.equals("DOMAIN")) {
-                    np.mSearchDomain = dhcpoption.get(2);
-                } else if (type.equals("DNS")) {
-                    np.mOverrideDNS = true;
-                    if (np.mDNS1.equals(VpnProfile.DEFAULT_DNS1))
-                        np.mDNS1 = arg;
-                    else
-                        np.mDNS2 = arg;
+                switch (type) {
+                    case "DOMAIN":
+                        np.mSearchDomain = dhcpoption.get(2);
+                        break;
+                    case "DNS":
+                        np.mOverrideDNS = true;
+                        if (np.mDNS1.equals(VpnProfile.DEFAULT_DNS1))
+                            np.mDNS1 = arg;
+                        else
+                            np.mDNS2 = arg;
+                        break;
                 }
             }
         }
@@ -740,9 +748,11 @@ public class ConfigParser {
         }
 
         // Parse OpenVPN Access Server extra
-        Vector<String> friendlyname = meta.get("FRIENDLY_NAME");
-        if (friendlyname != null && friendlyname.size() > 1)
-            np.mName = friendlyname.get(1);
+        for (String as_name_directive : new String[]{"PROFILE", "FRIENDLY_NAME"}) {
+            Vector<String> friendlyname = meta.get(as_name_directive);
+            if (friendlyname != null && friendlyname.size() > 1)
+                np.mName = friendlyname.get(1);
+        }
 
 
         Vector<String> ocusername = meta.get("USERNAME");

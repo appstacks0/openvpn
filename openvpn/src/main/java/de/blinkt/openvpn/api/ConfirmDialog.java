@@ -90,16 +90,18 @@ public class ConfirmDialog extends Activity implements
             View view = View.inflate(this, R.layout.api_confirm, null);
             CharSequence appString;
             if (mPackage.equals(ANONYMOUS_PACKAGE)) {
-                appString = getString(R.string.ovpn_all_app_prompt, getString(R.string.ovpn_app));
+                appString = getString(R.string.ovpn_all_app_prompt, getString(R.string.app_name));
             } else {
                 PackageManager pm = getPackageManager();
                 ApplicationInfo app = pm.getApplicationInfo(mPackage, 0);
-                appString = getString(R.string.ovpn_prompt, app.loadLabel(pm), getString(R.string.ovpn_app));
+                appString = getString(R.string.ovpn_prompt, app.loadLabel(pm), getString(R.string.app_name));
                 ((ImageView) view.findViewById(R.id.icon)).setImageDrawable(app.loadIcon(pm));
             }
 
 
             ((TextView) view.findViewById(R.id.prompt)).setText(appString);
+            String appName = getString(R.string.app_name);
+            ((TextView) view.findViewById(R.id.warning)).setText(getString(R.string.ovpn_remote_warning, appName));
             ((CompoundButton) view.findViewById(R.id.check)).setOnCheckedChangeListener(this);
 
 

@@ -29,6 +29,10 @@ public class VPNLaunchHelper {
 
 
     private static String writeMiniVPN(Context context) {
+
+        /* Q does not allow executing binaries written in temp directory anymore */
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            return new File(context.getApplicationInfo().nativeLibraryDir, "libovpnexec.so").getPath();
         String[] abis;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             abis = getSupportedABIsLollipop();
@@ -102,7 +106,7 @@ public class VPNLaunchHelper {
 
             FileOutputStream fout = new FileOutputStream(mvpnout);
 
-            byte buf[] = new byte[4096];
+            byte[] buf = new byte[4096];
 
             int lenread = mvpn.read(buf);
             while (lenread > 0) {

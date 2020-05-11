@@ -288,6 +288,8 @@ public class LogItem implements Parcelable {
                 throw new FormatFlagsConversionMismatchException(e.getLocalizedMessage() + getString(null), e.getConversion());
             else
                 throw e;
+        } catch (Exception e) {
+            return "";
         }
 
     }
